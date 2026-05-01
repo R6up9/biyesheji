@@ -40,23 +40,26 @@
               @click="handleConfirmBooking(booking.id)"
             >
               确认
-            </el-button>
+            </el-button
+            >
             <el-button
               v-if="booking.status === 1"
               type="primary"
               size="small"
-              @click="handleCompleteBooking(booking.id)"
+              @click="handleCompleteBooking(booking.id, '确定要完成这个课程报名吗？')"
             >
               完成
-            </el-button>
+            </el-button
+            >
             <el-button
               v-if="booking.status === 0 || booking.status === 1"
               type="danger"
               size="small"
-              @click="handleCancelBooking(booking.id)"
+              @click="handleCancelBooking(booking.id, '确定要取消这个课程报名吗？')"
             >
               取消
-            </el-button>
+            </el-button
+            >
           </div>
         </div>
         <el-empty v-if="courseBookings.length === 0" description="暂无课程报名" />
@@ -205,6 +208,8 @@ import { ElMessage, ElMessageBox, FormInstance, FormRules } from 'element-plus'
 import { Search, Refresh, Plus, Location, Clock, User } from '@element-plus/icons-vue'
 import { CourseAPI, CourseVO, CourseQuery } from '@/api/course'
 import { BookingAPI } from '@/api/booking'
+import { formatTime, formatDateTime } from '@/utils/date'
+import { useBookingActions } from '@/hooks/useBookingActions'
 
 defineOptions({ name: 'CourseList' })
 
@@ -219,8 +224,7 @@ const dialogTitle = ref('')
 const formRef = ref<FormInstance>()
 
 const queryParams = reactive<CourseQuery>({
-  pageNum: 1,
-  pageSize: 8,
+  pageNum: 1, pageSize: 8,
   name: '',
   status: undefined
 })
@@ -267,23 +271,6 @@ const statusTagType = (status: number) => {
   return map[status] || ''
 }
 
-const formatTime = (time: string) => {
-  if (!time) return ''
-  const t = new Date(time)
-  return `${t.getMonth() + 1}月${t.getDate()}日 ${String(t.getHours()).padStart(2, '0')}:${String(t.getMinutes()).padStart(2, '0')}`
-}
-
-const formatDateTime = (time: string) => {
-  if (!time) return ''
-  const t = new Date(time)
-  const year = t.getFullYear()
-  const month = String(t.getMonth() + 1).padStart(2, '0')
-  const day = String(t.getDate()).padStart(2, '0')
-  const hour = String(t.getHours()).padStart(2, '0')
-  const minute = String(t.getMinutes()).padStart(2, '0')
-  return `${year}-${month}-${day} ${hour}:${minute}`
-}
-
 const getList = async () => {
   loading.value = true
   try {
@@ -307,63 +294,11 @@ const getBookings = async () => {
 
 const refreshAllData = async () => {
   ElMessage.info('正在刷新数据...')
-  await Promise.all([
-    getList(),
-    getBookings()
-  ])
+  await Promise.all([getList(), getBookings()])
   ElMessage.success('刷新成功！')
 }
 
-const handleConfirmBooking = async (bookingId: number) => {
-  try {
-    await ElMessageBox.confirm('确定要确认这个课程报名吗？', '提示', {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
-      type: 'warning'
-    })
-    await BookingAPI.update({ id: bookingId, status: 1 })
-    ElMessage.success('确认成功！')
-    await refreshAllData()
-  } catch (e: any) {
-    if (e !== 'cancel') {
-      ElMessage.error(e.message || '操作失败')
-    }
-  }
-}
-
-const handleCompleteBooking = async (bookingId: number) => {
-  try {
-    await ElMessageBox.confirm('确定要完成这个课程报名吗？', '提示', {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
-      type: 'warning'
-    })
-    await BookingAPI.update({ id: bookingId, status: 2 })
-    ElMessage.success('完成成功！')
-    await refreshAllData()
-  } catch (e: any) {
-    if (e !== 'cancel') {
-      ElMessage.error(e.message || '操作失败')
-    }
-  }
-}
-
-const handleCancelBooking = async (bookingId: number) => {
-  try {
-    await ElMessageBox.confirm('确定要取消这个课程报名吗？', '提示', {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
-      type: 'warning'
-    })
-    await BookingAPI.update({ id: bookingId, status: 3 })
-    ElMessage.success('取消成功！')
-    await refreshAllData()
-  } catch (e: any) {
-    if (e !== 'cancel') {
-      ElMessage.error(e.message || '操作失败')
-    }
-  }
-}
+const { handleConfirmBooking, handleCompleteBooking, handleCancelBooking } = useBookingActions(refreshAllData)
 
 const handleSearch = () => {
   queryParams.pageNum = 1

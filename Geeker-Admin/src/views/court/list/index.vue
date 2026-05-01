@@ -86,23 +86,26 @@
                     @click="handleConfirmBooking(booking.bookingId)"
                   >
                     确认
-                  </el-button>
+                  </el-button
+                  >
                   <el-button 
                     v-if="booking.status === 1" 
                     type="primary" 
                     size="small"
-                    @click="handleCompleteBooking(booking.bookingId)"
+                    @click="handleCompleteBooking(booking.bookingId, '确定要完成这个预约吗？')"
                   >
                     完成
-                  </el-button>
+                  </el-button
+                  >
                   <el-button 
                     v-if="booking.status === 0 || booking.status === 1" 
                     type="danger" 
                     size="small"
-                    @click="handleCancelBooking(booking.bookingId)"
+                    @click="handleCancelBooking(booking.bookingId, '确定要取消这个预约吗？')"
                   >
                     取消
-                  </el-button>
+                  </el-button
+                  >
                 </div>
               </div>
             </div>
@@ -229,6 +232,8 @@ import { Search, Refresh, Plus, User } from '@element-plus/icons-vue'
 import { CourtAPI, CourtVO, CourtQuery } from '@/api/court'
 import { CourtVisualizationAPI } from '@/api/court-visualization'
 import { BookingAPI } from '@/api/booking'
+import { formatDateTime } from '@/utils/date'
+import { useBookingActions } from '@/hooks/useBookingActions'
 
 defineOptions({ name: 'CourtList' })
 
@@ -244,19 +249,13 @@ const formRef = ref<FormInstance>()
 const selectedDate = ref(new Date().toISOString().split('T')[0])
 
 const queryParams = reactive<CourtQuery>({
-  pageNum: 1,
-  pageSize: 10,
-  name: '',
-  status: undefined
+  pageNum: 1, pageSize: 10,
+  name: '', status: undefined
 })
 
 const formData = reactive<CourtVO>({
-  name: '',
-  location: '',
-  capacity: 4,
-  status: 1,
-  pricePerHour: 50,
-  description: ''
+  name: '', location: '', capacity: 4, status: 1,
+  pricePerHour: 50, description: ''
 })
 
 const formRules: FormRules = {
@@ -281,12 +280,11 @@ const loadVisualization = async () => {
 
 const refreshAllData = async () => {
   ElMessage.info('正在刷新数据...')
-  await Promise.all([
-    loadVisualization(),
-    getList()
-  ])
+  await Promise.all([loadVisualization(), getList()])
   ElMessage.success('刷新成功！')
 }
+
+const { handleConfirmBooking, handleCompleteBooking, handleCancelBooking } = useBookingActions(refreshAllData)
 
 const getSeatClass = (index: number, bookedCount: number) => {
   return index <= bookedCount ? 'seat-booked-wrapper' : 'seat-available-wrapper'
@@ -299,68 +297,6 @@ const getUserName = (booking: any) => {
 const getBookingTooltip = (booking: any) => {
   if (!booking) return ''
   return `用户：${booking.userName}\n状态：${booking.statusLabel}\n预约时间：${formatDateTime(booking.createTime)}`
-}
-
-const formatDateTime = (dateStr: string) => {
-  if (!dateStr) return ''
-  const date = new Date(dateStr)
-  const year = date.getFullYear()
-  const month = String(date.getMonth() + 1).padStart(2, '0')
-  const day = String(date.getDate()).padStart(2, '0')
-  const hour = String(date.getHours()).padStart(2, '0')
-  const minute = String(date.getMinutes()).padStart(2, '0')
-  return `${year}-${month}-${day} ${hour}:${minute}`
-}
-
-const handleConfirmBooking = async (bookingId: number) => {
-  try {
-    await ElMessageBox.confirm('确定要确认这个预约吗？', '提示', {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
-      type: 'warning'
-    })
-    await BookingAPI.update({ id: bookingId, status: 1 })
-    ElMessage.success('确认成功！')
-    await refreshAllData()
-  } catch (e: any) {
-    if (e !== 'cancel') {
-      ElMessage.error(e.message || '操作失败')
-    }
-  }
-}
-
-const handleCompleteBooking = async (bookingId: number) => {
-  try {
-    await ElMessageBox.confirm('确定要完成这个预约吗？', '提示', {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
-      type: 'warning'
-    })
-    await BookingAPI.update({ id: bookingId, status: 2 })
-    ElMessage.success('完成成功！')
-    await refreshAllData()
-  } catch (e: any) {
-    if (e !== 'cancel') {
-      ElMessage.error(e.message || '操作失败')
-    }
-  }
-}
-
-const handleCancelBooking = async (bookingId: number) => {
-  try {
-    await ElMessageBox.confirm('确定要取消这个预约吗？', '提示', {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
-      type: 'warning'
-    })
-    await BookingAPI.update({ id: bookingId, status: 3 })
-    ElMessage.success('取消成功！')
-    await refreshAllData()
-  } catch (e: any) {
-    if (e !== 'cancel') {
-      ElMessage.error(e.message || '操作失败')
-    }
-  }
 }
 
 // 获取列表

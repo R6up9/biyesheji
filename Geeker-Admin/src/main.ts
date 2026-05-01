@@ -16,8 +16,6 @@ import '@/styles/element.scss'
 import ElementPlus from 'element-plus'
 // element icons
 import * as Icons from '@element-plus/icons-vue'
-// custom directives
-import directives from '@/directives/index'
 // vue Router
 import router from '@/routers'
 // vue i18n
@@ -36,4 +34,4 @@ Object.keys(Icons).forEach(key => {
   app.component(key, Icons[key as keyof typeof Icons])
 })
 
-app.use(ElementPlus).use(directives).use(router).use(I18n).use(pinia).mount('#app')
+app.use(ElementPlus).use(router).use(I18n).use(pinia).mount('#app')

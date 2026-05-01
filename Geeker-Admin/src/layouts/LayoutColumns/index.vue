@@ -3,7 +3,7 @@
   <ElContainer class="layout">
     <div class="aside-split">
       <div class="logo flex justify-center items-center">
-        <img class="logo-img" src="@/assets/images/logo.svg" alt="logo" />
+        <img class="logo-img" src="@/assets/images/VCG211536356687.png" alt="logo" />
       </div>
       <ElScrollbar>
         <div class="split-list">

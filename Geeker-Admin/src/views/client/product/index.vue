@@ -1,27 +1,36 @@
 <template>
-  <div class="product-list card">
-    <div class="search-box">
-      <el-form :model="queryParams" inline>
-        <el-form-item label="商品名称">
-          <el-input v-model="queryParams.name" placeholder="请输入商品名称" clearable />
-        </el-form-item>
-        <el-form-item label="商品类型">
-          <el-select v-model="queryParams.type" placeholder="请选择类型" clearable>
-            <el-option label="器材" :value="1" />
-            <el-option label="服装" :value="2" />
-            <el-option label="配件" :value="3" />
-          </el-select>
-        </el-form-item>
-        <el-form-item>
-          <el-button type="primary" @click="handleSearch">
-            <el-icon><Search /></el-icon> 搜索
-          </el-button>
-          <el-button @click="handleReset">
-            <el-icon><Refresh /></el-icon> 重置
-          </el-button>
-        </el-form-item>
-      </el-form>
+  <div class="product-list">
+    <!-- 页面标题 -->
+    <div class="page-header">
+      <h2 class="page-title">🛍️ 商品查看</h2>
+      <p class="page-desc">浏览并购买羽毛球相关的商品</p>
     </div>
+    
+    <!-- 搜索区域 -->
+    <el-card class="search-card" shadow="never">
+      <div class="search-box">
+        <el-form :model="queryParams" inline>
+          <el-form-item label="商品名称">
+            <el-input v-model="queryParams.name" placeholder="请输入商品名称" clearable />
+          </el-form-item>
+          <el-form-item label="商品类型">
+            <el-select v-model="queryParams.type" placeholder="请选择类型" clearable>
+              <el-option label="器材" :value="1" />
+              <el-option label="服装" :value="2" />
+              <el-option label="配件" :value="3" />
+            </el-select>
+          </el-form-item>
+          <el-form-item>
+            <el-button type="primary" @click="handleSearch">
+              <el-icon><Search /></el-icon> 搜索
+            </el-button>
+            <el-button @click="handleReset">
+              <el-icon><Refresh /></el-icon> 重置
+            </el-button>
+          </el-form-item>
+        </el-form>
+      </div>
+    </el-card>
 
     <!-- 商品卡片展示 -->
     <el-row :gutter="20" v-loading="loading" class="product-grid">
@@ -263,17 +272,37 @@ onMounted(() => {
 
 <style scoped lang="scss">
 .product-list {
-  padding: 20px;
-
-  .search-box {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
+  .page-header {
+    margin-bottom: 24px;
+    
+    .page-title {
+      margin: 0 0 8px;
+      font-size: 24px;
+      font-weight: 700;
+      color: #1e293b;
+    }
+    
+    .page-desc {
+      margin: 0;
+      font-size: 14px;
+      color: #64748b;
+    }
+  }
+  
+  .search-card {
+    border: none;
+    border-radius: 16px;
+    margin-bottom: 24px;
+    
+    .search-box {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
   }
 
   .product-grid {
-    margin-top: 20px;
+    margin-top: 0;
   }
 
   .product-col {
@@ -281,11 +310,13 @@ onMounted(() => {
   }
 
   .product-card {
-    transition: transform 0.3s, box-shadow 0.3s;
+    transition: all 0.3s;
+    border: none;
+    border-radius: 12px;
 
     &:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+      transform: translateY(-4px);
+      box-shadow: 0 12px 24px rgba(0, 0, 0, 0.08);
     }
   }
 
@@ -293,8 +324,8 @@ onMounted(() => {
     width: 100%;
     height: 200px;
     overflow: hidden;
-    border-radius: 4px;
-    background: #f5f7fa;
+    border-radius: 8px;
+    background: #f8fafc;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -314,7 +345,7 @@ onMounted(() => {
   }
 
   .placeholder-text {
-    color: #909399;
+    color: #94a3b8;
     font-size: 14px;
   }
 
@@ -331,8 +362,8 @@ onMounted(() => {
 
   .product-name {
     font-size: 16px;
-    font-weight: 600;
-    color: #303133;
+    font-weight: 700;
+    color: #1e293b;
     margin: 0;
     flex: 1;
     overflow: hidden;
@@ -347,7 +378,7 @@ onMounted(() => {
 
   .product-desc {
     font-size: 13px;
-    color: #606266;
+    color: #64748b;
     margin: 8px 0;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -362,7 +393,7 @@ onMounted(() => {
     align-items: center;
     margin-top: 12px;
     padding-top: 12px;
-    border-top: 1px solid #f5f7fa;
+    border-top: 1px solid #f1f5f9;
   }
 
   .product-price {
@@ -372,19 +403,19 @@ onMounted(() => {
 
   .currency {
     font-size: 14px;
-    color: #f56c6c;
-    font-weight: 600;
+    color: #ef4444;
+    font-weight: 700;
   }
 
   .price-num {
-    font-size: 20px;
-    color: #f56c6c;
+    font-size: 22px;
+    color: #ef4444;
     font-weight: 700;
   }
 
   .product-stock {
     font-size: 13px;
-    color: #909399;
+    color: #94a3b8;
   }
 
   .product-actions {
@@ -405,14 +436,14 @@ onMounted(() => {
     display: flex;
     gap: 16px;
     padding: 16px;
-    background: #f5f7fa;
-    border-radius: 8px;
+    background: #f8fafc;
+    border-radius: 12px;
 
     .product-thumb {
       width: 80px;
       height: 80px;
       object-fit: cover;
-      border-radius: 4px;
+      border-radius: 8px;
     }
 
     .info {
@@ -421,19 +452,20 @@ onMounted(() => {
       h3 {
         margin: 0 0 8px;
         font-size: 16px;
-        color: #303133;
+        color: #1e293b;
+        font-weight: 700;
       }
 
       .price {
         font-size: 20px;
-        color: #f56c6c;
+        color: #ef4444;
         font-weight: 700;
         margin: 0 0 4px;
       }
 
       .stock {
         font-size: 13px;
-        color: #909399;
+        color: #94a3b8;
         margin: 0;
       }
     }
@@ -444,13 +476,13 @@ onMounted(() => {
     justify-content: flex-end;
     align-items: baseline;
     padding-top: 16px;
-    border-top: 1px solid #ebeef5;
+    border-top: 1px solid #e2e8f0;
     font-size: 14px;
-    color: #606266;
+    color: #64748b;
 
     .amount {
       font-size: 24px;
-      color: #f56c6c;
+      color: #ef4444;
       font-weight: 700;
       margin-left: 8px;
     }

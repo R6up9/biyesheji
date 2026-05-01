@@ -42,23 +42,26 @@
               @click="handleConfirmBooking(booking.id)"
             >
               确认
-            </el-button>
+            </el-button
+            >
             <el-button
               v-if="booking.status === 1"
               type="primary"
               size="small"
-              @click="handleCompleteBooking(booking.id)"
+              @click="handleCompleteBooking(booking.id, '确定要完成这个活动报名吗？')"
             >
               完成
-            </el-button>
+            </el-button
+            >
             <el-button
               v-if="booking.status === 0 || booking.status === 1"
               type="danger"
               size="small"
-              @click="handleCancelBooking(booking.id)"
+              @click="handleCancelBooking(booking.id, '确定要取消这个活动报名吗？')"
             >
               取消
-            </el-button>
+            </el-button
+            >
           </div>
         </div>
         <el-empty v-if="activityBookings.length === 0 && !bookingLoading" description="暂无活动报名" />
@@ -238,6 +241,8 @@ import { Search, Refresh, Plus, Calendar, Location, Clock, User } from '@element
 import { ActivityAPI, ActivityVO, ActivityQuery } from '@/api/activity'
 import { BookingAPI } from '@/api/booking'
 import { useUserStore } from '@/stores/modules/user'
+import { formatTime, formatDateTime } from '@/utils/date'
+import { useBookingActions } from '@/hooks/useBookingActions'
 
 defineOptions({ name: 'ActivityList' })
 
@@ -314,32 +319,19 @@ const statusTagType = (status: number) => {
   return map[status] || ''
 }
 
-const formatTime = (time: string) => {
-  if (!time) return ''
-  const t = new Date(time)
-  return `${t.getMonth() + 1}月${t.getDate()}日 ${String(t.getHours()).padStart(2, '0')}:${String(t.getMinutes()).padStart(2, '0')}`
+const refreshAllData = async () => {
+  ElMessage.info('正在刷新数据...')
+  await Promise.all([getList(), getBookings()])
+  ElMessage.success('刷新成功！')
 }
 
-const formatDateTime = (time: string) => {
-  if (!time) return ''
-  const t = new Date(time)
-  const year = t.getFullYear()
-  const month = String(t.getMonth() + 1).padStart(2, '0')
-  const day = String(t.getDate()).padStart(2, '0')
-  const hour = String(t.getHours()).padStart(2, '0')
-  const minute = String(t.getMinutes()).padStart(2, '0')
-  return `${year}-${month}-${day} ${hour}:${minute}`
-}
+const { handleConfirmBooking, handleCompleteBooking, handleCancelBooking } = useBookingActions(refreshAllData)
 
 const handleActivityImageLoadError = (e: any) => {
-  console.log('Activity image load error:', e)
-  console.log('Image src:', e.target.src)
   e.target.style.display = 'none'
 }
 
 const handleUploadError = (error: any, file: any) => {
-  console.log('Activity upload error:', error)
-  console.log('File:', file)
   ElMessage.error('图片上传失败，请重试')
 }
 
@@ -359,13 +351,10 @@ const beforeImageUpload: UploadProps['beforeUpload'] = (file) => {
 }
 
 const handleImageSuccess: UploadProps['onSuccess'] = (response: any) => {
-  console.log('Activity upload success response:', response)
   if (response && response.code === 200 && response.data && response.data.url) {
     formData.image = response.data.url
-    console.log('Set activity formData.image to:', formData.image)
     ElMessage.success('图片上传成功!')
   } else {
-    console.log('Unexpected activity response format')
     ElMessage.error(response?.msg || '图片上传失败')
   }
 }
@@ -396,65 +385,7 @@ const getBookings = async () => {
   }
 }
 
-const refreshAllData = async () => {
-  ElMessage.info('正在刷新数据...')
-  await Promise.all([
-    getList(),
-    getBookings()
-  ])
-  ElMessage.success('刷新成功！')
-}
 
-const handleConfirmBooking = async (bookingId: number) => {
-  try {
-    await ElMessageBox.confirm('确定要确认这个活动报名吗？', '提示', {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
-      type: 'warning'
-    })
-    await BookingAPI.update({ id: bookingId, status: 1 })
-    ElMessage.success('确认成功！')
-    await refreshAllData()
-  } catch (e: any) {
-    if (e !== 'cancel') {
-      ElMessage.error(e.message || '操作失败')
-    }
-  }
-}
-
-const handleCompleteBooking = async (bookingId: number) => {
-  try {
-    await ElMessageBox.confirm('确定要完成这个活动报名吗？', '提示', {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
-      type: 'warning'
-    })
-    await BookingAPI.update({ id: bookingId, status: 2 })
-    ElMessage.success('完成成功！')
-    await refreshAllData()
-  } catch (e: any) {
-    if (e !== 'cancel') {
-      ElMessage.error(e.message || '操作失败')
-    }
-  }
-}
-
-const handleCancelBooking = async (bookingId: number) => {
-  try {
-    await ElMessageBox.confirm('确定要取消这个活动报名吗？', '提示', {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
-      type: 'warning'
-    })
-    await BookingAPI.update({ id: bookingId, status: 3 })
-    ElMessage.success('取消成功！')
-    await refreshAllData()
-  } catch (e: any) {
-    if (e !== 'cancel') {
-      ElMessage.error(e.message || '操作失败')
-    }
-  }
-}
 
 const handleSearch = () => {
   queryParams.pageNum = 1

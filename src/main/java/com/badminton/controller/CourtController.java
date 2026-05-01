@@ -3,6 +3,7 @@ package com.badminton.controller;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.badminton.common.Result;
+import com.badminton.constant.BookingConstants;
 import com.badminton.entity.Booking;
 import com.badminton.entity.Court;
 import com.badminton.mapper.BookingMapper;
@@ -28,38 +29,26 @@ public class CourtController {
     @Autowired
     private BookingMapper bookingMapper;
 
-    // 分页查询场地列表
     @GetMapping("/list")
     public Result<Page<Court>> list(
             @RequestParam(defaultValue = "1") Integer pageNum,
             @RequestParam(defaultValue = "10") Integer pageSize,
             @RequestParam(required = false) String name,
             @RequestParam(required = false) Integer status) {
-        
-        System.out.println("CourtController.list 被调用: pageNum=" + pageNum + ", pageSize=" + pageSize + ", name=" + name + ", status=" + status);
-        
         Page<Court> page = new Page<>(pageNum, pageSize);
         LambdaQueryWrapper<Court> wrapper = new LambdaQueryWrapper<>();
-        
+
         if (name != null && !name.isEmpty()) {
             wrapper.like(Court::getName, name);
         }
         if (status != null) {
             wrapper.eq(Court::getStatus, status);
         }
-        
+
         wrapper.orderByDesc(Court::getCreateTime);
-        Page<Court> resultPage = courtMapper.selectPage(page, wrapper);
-        
-        System.out.println("查询结果: total=" + resultPage.getTotal() + ", records size=" + resultPage.getRecords().size());
-        for (Court court : resultPage.getRecords()) {
-            System.out.println("Court: id=" + court.getId() + ", name=" + court.getName());
-        }
-        
-        return Result.success(resultPage);
+        return Result.success(courtMapper.selectPage(page, wrapper));
     }
 
-    // 获取所有可用场地
     @GetMapping("/all")
     public Result<List<Court>> all() {
         LambdaQueryWrapper<Court> wrapper = new LambdaQueryWrapper<>();
@@ -67,7 +56,6 @@ public class CourtController {
         return Result.success(courtMapper.selectList(wrapper));
     }
 
-    // 获取单个场地详情
     @GetMapping("/{id}")
     public Result<Court> detail(@PathVariable Integer id) {
         Court court = courtMapper.selectById(id);
@@ -77,7 +65,6 @@ public class CourtController {
         return Result.success(court);
     }
 
-    // 新增场地
     @PostMapping
     public Result<String> add(@RequestBody Court court) {
         court.setCreateTime(LocalDateTime.now());
@@ -86,7 +73,6 @@ public class CourtController {
         return Result.successMsg("添加成功");
     }
 
-    // 更新场地
     @PutMapping
     public Result<String> update(@RequestBody Court court) {
         court.setUpdateTime(LocalDateTime.now());
@@ -94,36 +80,33 @@ public class CourtController {
         return Result.successMsg("更新成功");
     }
 
-    // 删除场地
     @DeleteMapping("/{id}")
     public Result<String> delete(@PathVariable Integer id) {
         courtMapper.deleteById(id);
         return Result.successMsg("删除成功");
     }
 
-    // 获取场地的可预约时段
     @GetMapping("/{id}/time-slots")
     public Result<List<Map<String, Object>>> getTimeSlots(
             @PathVariable Integer id,
             @RequestParam String date) {
-        
         LocalDate localDate = LocalDate.parse(date);
         List<Map<String, Object>> timeSlots = new ArrayList<>();
-        
-        // 每天8:00-22:00，每小时一个时段
+
         for (int hour = 8; hour < 22; hour++) {
             LocalDateTime startTime = LocalDateTime.of(localDate, LocalTime.of(hour, 0));
             LocalDateTime endTime = startTime.plusHours(1);
-            
-            // 查询这个时段是否已被预约
+
             LambdaQueryWrapper<Booking> wrapper = new LambdaQueryWrapper<>();
             wrapper.eq(Booking::getTargetId, id);
-            wrapper.eq(Booking::getType, 1); // 1=场地
+            wrapper.eq(Booking::getType, BookingConstants.BOOKING_TYPE_COURT);
             wrapper.eq(Booking::getStartTime, startTime);
-            wrapper.in(Booking::getStatus, 0, 1); // 0=待确认, 1=已确认
-            
+            wrapper.in(Booking::getStatus, 
+                BookingConstants.BOOKING_STATUS_PENDING, 
+                BookingConstants.BOOKING_STATUS_CONFIRMED);
+
             Booking existingBooking = bookingMapper.selectOne(wrapper);
-            
+
             Map<String, Object> slot = new HashMap<>();
             slot.put("startTime", startTime.toString());
             slot.put("endTime", endTime.toString());
@@ -131,7 +114,7 @@ public class CourtController {
             slot.put("booking", existingBooking);
             timeSlots.add(slot);
         }
-        
+
         return Result.success(timeSlots);
     }
 }

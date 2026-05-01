@@ -21,25 +21,18 @@ public class ActivityController {
             @RequestParam(defaultValue = "10") Integer pageSize,
             @RequestParam(required = false) String title,
             @RequestParam(required = false) Integer status) {
-        
-        System.out.println("ActivityController.list called: pageNum=" + pageNum + ", pageSize=" + pageSize + ", title=" + title + ", status=" + status);
-        
         Page<Activity> page = new Page<>(pageNum, pageSize);
         LambdaQueryWrapper<Activity> wrapper = new LambdaQueryWrapper<>();
-        
+
         if (title != null && !title.trim().isEmpty()) {
             wrapper.like(Activity::getTitle, title.trim());
         }
         if (status != null) {
             wrapper.eq(Activity::getStatus, status);
         }
-        
+
         wrapper.orderByDesc(Activity::getCreateTime);
-        Page<Activity> resultPage = activityMapper.selectPage(page, wrapper);
-        
-        System.out.println("Query result: total=" + resultPage.getTotal() + ", records size=" + resultPage.getRecords().size());
-        
-        return Result.success(resultPage);
+        return Result.success(activityMapper.selectPage(page, wrapper));
     }
 
     @GetMapping("/all")
@@ -70,14 +63,14 @@ public class ActivityController {
         if (activity.getMaxParticipants() == null || activity.getMaxParticipants() <= 0) {
             return Result.error("请设置最大参与人数");
         }
-        
+
         if (activity.getStatus() == null) {
             activity.setStatus(1);
         }
         if (activity.getCurrentParticipants() == null) {
             activity.setCurrentParticipants(0);
         }
-        
+
         activityMapper.insert(activity);
         return Result.success();
     }

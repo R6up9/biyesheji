@@ -95,7 +95,6 @@ import { CircleClose, UserFilled } from '@element-plus/icons-vue'
 import type { ElForm } from 'element-plus'
 import { useLoadingStore } from '@/stores/modules/loading'
 import { storeToRefs } from 'pinia'
-import { useDictStore } from '@/stores/modules/dict'
 import { useAuthStore } from '@/stores/modules/auth'
 import { LOGIN_URL } from '@/config'
 
@@ -188,7 +187,6 @@ const login = (formEl: FormInstance | undefined) => {
       await authStore.getAuthMenuList()
       await authStore.getAuthButtonList()
       await initDynamicRouter()
-      useDictStore().getAllDict()
 
       tabsStore.setTabs([])
       keepAliveStore.setKeepAliveName([])

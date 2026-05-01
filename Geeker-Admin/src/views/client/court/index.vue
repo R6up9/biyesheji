@@ -1,43 +1,55 @@
 <template>
   <div class="client-court">
+    <!-- 页面标题 -->
+    <div class="page-header">
+      <h2 class="page-title">🏸 场地预约</h2>
+      <p class="page-desc">选择您需要的羽毛球场地进行预约</p>
+    </div>
+    
     <!-- 场地预约部分 -->
-    <el-card>
+    <el-card class="page-card" shadow="never">
       <template #header>
         <div class="card-header">
-          <span>场地预约</span>
+          <span>可用场地</span>
           <el-button type="primary" :icon="Refresh" @click="refreshAllData">
             刷新数据
           </el-button>
         </div>
       </template>
       
-      <el-row :gutter="20" v-loading="loading">
-        <el-col :span="8" v-for="court in courtList" :key="court.id">
+      <el-row :gutter="16" v-loading="loading">
+        <el-col :xs="24" :sm="12" :md="8" v-for="court in courtList" :key="court.id">
           <el-card shadow="hover" class="court-card" @click="handleBook(court)">
-            <h3>{{ court.name }}</h3>
-            <p><el-icon><Location /></el-icon> {{ court.location }}</p>
-            <p><el-icon><Timer /></el-icon> 价格：¥{{ court.pricePerHour }}/小时</p>
-            <p><el-icon><User /></el-icon> 容量：{{ court.capacity }}人</p>
-            <p>
-              今日预约：
-              <span class="booked-count">{{ getTodayBookedCount(court.id) }}</span> / {{ court.capacity }}
-              <span v-if="getTodayBookedCount(court.id) >= court.capacity" class="full-tag">
-                <el-tag type="danger" size="small">已满</el-tag>
-              </span>
-              <span v-if="getUserHasBookedToday(court.id)" class="booked-tag">
-                <el-tag type="warning" size="small">我已预约</el-tag>
-              </span>
-            </p>
-            <p>状态：<el-tag :type="court.status === 1 ? 'success' : 'info'">
-              {{ court.status === 1 ? '可用' : '维护中' }}
-            </el-tag></p>
-            <el-button 
-              type="primary" 
-              @click.stop="handleBook(court)" 
-              :disabled="court.status !== 1 || getUserHasBookedToday(court.id)"
-            >
-              {{ getUserHasBookedToday(court.id) ? '我已预约' : '立即预约' }}
-            </el-button>
+            <div class="court-header">
+              <h3>{{ court.name }}</h3>
+              <el-tag :type="court.status === 1 ? 'success' : 'info'">
+                {{ court.status === 1 ? '可用' : '维护中' }}
+              </el-tag>
+            </div>
+            <div class="court-info">
+              <p><el-icon><Location /></el-icon> {{ court.location }}</p>
+              <p><el-icon><Timer /></el-icon> 价格：¥{{ court.pricePerHour }}/小时</p>
+              <p><el-icon><User /></el-icon> 容量：{{ court.capacity }}人</p>
+            </div>
+            <div class="court-status">
+              <div class="book-info">
+                今日预约：
+                <span class="booked-count">{{ getTodayBookedCount(court.id) }}</span> / {{ court.capacity }}
+              </div>
+              <div class="status-tags">
+                <el-tag v-if="getTodayBookedCount(court.id) >= court.capacity" type="danger" size="small" effect="dark">已满</el-tag>
+                <el-tag v-if="getUserHasBookedToday(court.id)" type="warning" size="small" effect="dark">我已预约</el-tag>
+              </div>
+            </div>
+            <div class="court-action">
+              <el-button 
+                type="primary" 
+                size="default"
+                @click.stop="handleBook(court)" 
+                :disabled="court.status !== 1 || getUserHasBookedToday(court.id)">
+                {{ getUserHasBookedToday(court.id) ? '我已预约' : '立即预约' }}
+              </el-button>
+            </div>
           </el-card>
         </el-col>
       </el-row>
@@ -263,42 +275,102 @@ onMounted(() => {
 
 <style scoped lang="scss">
 .client-court {
-  .card-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+  .page-header {
+    margin-bottom: 24px;
+    
+    .page-title {
+      margin: 0 0 8px;
+      font-size: 24px;
+      font-weight: 700;
+      color: #1e293b;
+    }
+    
+    .page-desc {
+      margin: 0;
+      font-size: 14px;
+      color: #64748b;
+    }
+  }
+  
+  .page-card {
+    border: none;
+    border-radius: 16px;
+    
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      
+      span {
+        font-size: 16px;
+        font-weight: 700;
+        color: #1e293b;
+      }
+    }
   }
   
   .court-card {
-    margin-bottom: 20px;
+    margin-bottom: 16px;
     cursor: pointer;
-    transition: transform 0.3s;
+    transition: all 0.3s;
+    border: none;
+    border-radius: 12px;
     
     &:hover {
-      transform: translateY(-5px);
+      transform: translateY(-4px);
+      box-shadow: 0 12px 24px rgba(0, 0, 0, 0.08);
     }
     
-    h3 {
-      margin: 0 0 15px 0;
-      color: #303133;
-    }
-    
-    p {
-      margin: 10px 0;
+    .court-header {
       display: flex;
+      justify-content: space-between;
       align-items: center;
-      gap: 6px;
-      color: #606266;
+      margin-bottom: 12px;
       
-      .booked-count {
-        font-weight: bold;
-        color: #409eff;
+      h3 {
+        margin: 0;
+        color: #1e293b;
+        font-size: 17px;
+        font-weight: 700;
       }
+    }
+    
+    .court-info {
+      margin-bottom: 12px;
       
-      .full-tag,
-      .booked-tag {
-        margin-left: 8px;
+      p {
+        margin: 6px 0;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        color: #64748b;
+        font-size: 14px;
       }
+    }
+    
+    .court-status {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      padding: 10px 12px;
+      background: #f8fafc;
+      border-radius: 8px;
+      
+      .book-info {
+        color: #64748b;
+        font-size: 14px;
+        
+        .booked-count {
+          font-weight: 700;
+          color: #667eea;
+        }
+      }
+    }
+    
+    .court-action {
+      display: flex;
+      justify-content: center;
     }
   }
   
@@ -308,33 +380,36 @@ onMounted(() => {
     gap: 12px;
     
     .time-slot-item {
-      border: 1px solid #dcdfe6;
-      border-radius: 8px;
-      padding: 12px;
+      border: 2px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 16px;
       cursor: pointer;
       transition: all 0.3s;
       
       &:hover:not(.is-full):not(.is-booked) {
-        border-color: #409eff;
-        background-color: #f0f7ff;
+        border-color: #667eea;
+        background-color: #f0f2ff;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
       }
       
       &.is-full,
       &.is-booked {
-        background-color: #f5f7fa;
+        background-color: #f1f5f9;
         cursor: not-allowed;
-        opacity: 0.7;
+        opacity: 0.6;
       }
       
       &.is-selected {
-        border-color: #409eff;
+        border-color: #667eea;
         background-color: #ecf5ff;
       }
       
       .time-range {
         font-size: 16px;
-        font-weight: bold;
+        font-weight: 700;
         margin-bottom: 8px;
+        color: #1e293b;
       }
       
       .slot-info {
@@ -344,21 +419,22 @@ onMounted(() => {
         font-size: 14px;
         
         .text-danger {
-          color: #f56c6c;
+          color: #ef4444;
         }
         
         .full-text {
-          color: #f56c6c;
-          font-weight: bold;
+          color: #ef4444;
+          font-weight: 700;
         }
         
         .booked-text {
-          color: #e6a23c;
-          font-weight: bold;
+          color: #f59e0b;
+          font-weight: 700;
         }
         
         .remain-text {
-          color: #67c23a;
+          color: #10b981;
+          font-weight: 600;
         }
       }
     }
